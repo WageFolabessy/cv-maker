@@ -48,7 +48,106 @@ export default function Home() {
     } catch {}
   }, []);
 
-  const printCv = () => window.print();
+  const linkifyHtml = (html: string) => {
+    if (!html) return html;
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+      const urlRe = /(https?:\/\/[^\s<]+)|(www\.[^\s<]+\.[^\s<]+)/gi;
+      const emailRe = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+
+      const needsLinkify = (node: Node) => {
+        let p: Node | null = node.parentNode;
+        while (p) {
+          if ((p as HTMLElement).tagName === "A") return false;
+          p = p.parentNode;
+        }
+        return true;
+      };
+
+      const replaceTextNode = (textNode: Text) => {
+        const text = textNode.nodeValue || "";
+        const parts: Array<string | { href: string; label: string }> = [];
+
+        let idx = 0;
+        const pushPlain = (end: number) => {
+          if (end > idx) parts.push(text.slice(idx, end));
+          idx = end;
+        };
+
+        const collectMatches = () => {
+          const matches: Array<{
+            start: number;
+            end: number;
+            href: string;
+            label: string;
+          }> = [];
+          const add = (
+            start: number,
+            end: number,
+            href: string,
+            label: string
+          ) => {
+            matches.push({ start, end, href, label });
+          };
+          let m: RegExpExecArray | null;
+          const urlRx = new RegExp(urlRe);
+          while ((m = urlRx.exec(text))) {
+            const raw = m[0];
+            const hasProto = /^https?:\/\//i.test(raw);
+            const href = hasProto ? raw : `https://${raw}`;
+            add(m.index, m.index + raw.length, href, raw);
+          }
+          const emailRx = new RegExp(emailRe);
+          while ((m = emailRx.exec(text))) {
+            const raw = m[0];
+            add(m.index, m.index + raw.length, `mailto:${raw}`, raw);
+          }
+          matches.sort((a, b) => a.start - b.start);
+          return matches;
+        };
+
+        const matches = collectMatches();
+        for (const match of matches) {
+          if (match.start < idx) continue;
+          pushPlain(match.start);
+          parts.push({ href: match.href, label: match.label });
+          idx = match.end;
+        }
+        pushPlain(text.length);
+
+        if (parts.length === 1 && typeof parts[0] === "string") return;
+
+        const frag = document.createDocumentFragment();
+        for (const p of parts) {
+          if (typeof p === "string") {
+            frag.appendChild(document.createTextNode(p));
+          } else {
+            const a = document.createElement("a");
+            a.href = p.href;
+            a.textContent = p.label;
+            a.target = "_blank";
+            a.rel = "noreferrer";
+            frag.appendChild(a);
+          }
+        }
+        textNode.parentNode?.replaceChild(frag, textNode);
+      };
+
+      const toProcess: Text[] = [];
+      let n = walker.nextNode();
+      while (n) {
+        const isText = n.nodeType === Node.TEXT_NODE;
+        if (isText && needsLinkify(n)) toProcess.push(n as Text);
+        n = walker.nextNode();
+      }
+      toProcess.forEach(replaceTextNode);
+      return doc.body.innerHTML;
+    } catch {
+      return html;
+    }
+  };
 
   return (
     <>
@@ -65,24 +164,22 @@ export default function Home() {
             <h1 className="text-lg font-semibold tracking-tight">CV Maker</h1>
           </div>
 
-          <nav aria-label="Main navigation" className="hidden md:block">
-            <ul className="flex items-center gap-6 text-sm">
-              <li>
-                <Link href="/cvmaker" className="hover:underline">
-                  Go to Editor
-                </Link>
-              </li>
-            </ul>
-          </nav>
-
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={printCv}
+            <nav aria-label="Main navigation">
+              <ul className="flex items-center gap-6 text-sm">
+                <li>
+                  <Link href="/cvmaker" className="hover:underline">
+                    Go to Editor
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+            <Link
+              href="/print"
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white text-sm font-medium shadow-sm hover:bg-blue-700"
             >
               Print
-            </button>
+            </Link>
           </div>
         </div>
       </header>
@@ -93,7 +190,7 @@ export default function Home() {
           aria-label="CV Preview"
           className="mx-auto my-8 w-full max-w-[794px] bg-white rounded-2xl border shadow-lg print:shadow-none"
         >
-          <header className="border-b">
+          <header className="cv-header border-b print:border-none">
             <div className="px-8 py-8 text-center">
               <div className="flex items-center justify-center">
                 {data.header.avatarDataUrl ? (
@@ -102,7 +199,7 @@ export default function Home() {
                     src={data.header.avatarDataUrl}
                     width={96}
                     height={96}
-                    className="w-24 h-24 rounded-full object-cover border"
+                    className="w-24 h-24 rounded-full object-cover border avatar"
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-gray-100 border flex items-center justify-center text-3xl text-gray-500">
@@ -110,14 +207,28 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <h2 className="mt-4 text-3xl font-bold text-gray-900">
+              <h2 className="mt-4 text-3xl font-bold text-gray-900 name">
                 {data.header.name || "Name"}
               </h2>
-              <p className="text-blue-600">{data.header.role || ""}</p>
+              <p className="text-blue-600 role">{data.header.role || ""}</p>
 
               <address className="not-italic mt-3 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                {data.header.email && <span>{data.header.email}</span>}
-                {data.header.phone && <span>{data.header.phone}</span>}
+                {data.header.email && (
+                  <a
+                    className="text-gray-600 hover:underline"
+                    href={`mailto:${data.header.email}`}
+                  >
+                    {data.header.email}
+                  </a>
+                )}
+                {data.header.phone && (
+                  <a
+                    className="text-gray-600 hover:underline"
+                    href={`tel:${data.header.phone.replace(/[^+\d]/g, "")}`}
+                  >
+                    {data.header.phone}
+                  </a>
+                )}
                 {data.header.locationName && data.header.mapsUrl && (
                   <a
                     className="text-gray-600 hover:underline"
@@ -133,7 +244,7 @@ export default function Home() {
               {data.headerSocials.length > 0 && (
                 <nav
                   aria-label="Header Socials"
-                  className="mt-3 text-sm flex items-center justify-center gap-4 flex-wrap"
+                  className="mt-3 text-sm flex items-center justify-center gap-4 flex-wrap link-row"
                 >
                   {data.headerSocials.map((s) =>
                     s.url ? (
@@ -153,7 +264,7 @@ export default function Home() {
             </div>
           </header>
 
-          <div className="px-6 sm:px-10 py-6 space-y-6">
+          <div className="px-6 sm:px-10 py-6 space-y-6 cv-content">
             {data.sections.map((s) => (
               <section
                 key={s.id}
@@ -166,7 +277,11 @@ export default function Home() {
                   </h3>
                 </header>
                 <div className="px-5 py-4 text-gray-800 text-sm leading-7">
-                  <div dangerouslySetInnerHTML={{ __html: s.content || "" }} />
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: linkifyHtml(s.content || ""),
+                    }}
+                  />
                 </div>
               </section>
             ))}

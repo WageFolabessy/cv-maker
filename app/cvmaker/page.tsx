@@ -425,7 +425,7 @@ export default function CVMakerPage() {
                       <button
                         type="button"
                         onClick={addHeaderSocial}
-                        className="px-2 py-1 rounded bg-amber-500 text-white text-sm hover:bg-amber-600"
+                        className="px-2 py-1 rounded bg-[#117de7] text-white text-sm hover:bg-[#117de7]"
                       >
                         + Add
                       </button>
@@ -507,7 +507,7 @@ export default function CVMakerPage() {
                   <button
                     type="button"
                     onClick={addSection}
-                    className="px-2 py-1 rounded bg-amber-500 text-white text-sm hover:bg-amber-600"
+                    className="px-2 py-1 rounded bg-[#117de7] text-white text-sm hover:bg-[#117de7]"
                   >
                     + Add
                   </button>
@@ -623,7 +623,7 @@ export default function CVMakerPage() {
                   <button
                     type="button"
                     onClick={addFooterSocial}
-                    className="px-2 py-1 rounded bg-amber-500 text-white text-sm hover:bg-amber-600"
+                    className="px-2 py-1 rounded bg-[#117de7] text-white text-sm hover:bg-[#117de7]"
                   >
                     + Add
                   </button>
@@ -713,8 +713,22 @@ export default function CVMakerPage() {
                   <p className="text-blue-600">{data.header.role || ""}</p>
 
                   <address className="not-italic mt-3 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                    {data.header.email && <span>{data.header.email}</span>}
-                    {data.header.phone && <span>{data.header.phone}</span>}
+                    {data.header.email && (
+                      <a
+                        className="text-gray-600 hover:underline"
+                        href={`mailto:${data.header.email}`}
+                      >
+                        {data.header.email}
+                      </a>
+                    )}
+                    {data.header.phone && (
+                      <a
+                        className="text-gray-600 hover:underline"
+                        href={`tel:${data.header.phone.replace(/[^+\d]/g, "")}`}
+                      >
+                        {data.header.phone}
+                      </a>
+                    )}
                     {data.header.locationName && data.header.mapsUrl && (
                       <a
                         className="text-gray-600 hover:underline"
