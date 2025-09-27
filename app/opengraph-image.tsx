@@ -40,6 +40,7 @@ export default function OGImage() {
             background: "#f9fafb",
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logo} width={96} height={96} alt="Logo" />
         </div>
         <div

@@ -10,6 +10,7 @@ Live: https://cvmaker.efolabessy.app
 - Print-friendly layout (only CV content, 1-page A4 attempt, clickable links) styled in [app/globals.css](app/globals.css)
 - Social links, email, phone rendered as clickable anchors in preview ([`Home`](app/page.tsx))
 - SEO: robots + sitemap ([app/robots.ts](app/robots.ts), [app/sitemap.ts](app/sitemap.ts)), metadata in [`metadata`](app/layout.tsx)
+ - Social previews: dynamic OG/Twitter images generated via Next OG ([app/opengraph-image.tsx](app/opengraph-image.tsx), [app/twitter-image.tsx](app/twitter-image.tsx))
 
 ## Tech stack
 - Next.js (App Router) + React + TypeScript
@@ -59,6 +60,7 @@ Reset data:
 - robots: https://cvmaker.efolabessy.app/robots.txt via [app/robots.ts](app/robots.ts)
 - sitemap: https://cvmaker.efolabessy.app/sitemap.xml via [app/sitemap.ts](app/sitemap.ts)
 - Global metadata/OpenGraph/Twitter: [`metadata`](app/layout.tsx)
+ - Note: The Open Graph route uses a plain `<img>` tag within `next/og` image generation. This is intentional and exempted from the Next.js `no-img-element` ESLint rule in that file.
 
 
 ## Notes
