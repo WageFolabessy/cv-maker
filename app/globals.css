@@ -7,6 +7,32 @@
 
 button { cursor: pointer; }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.backdrop-blur,
+.backdrop-blur-sm,
+.backdrop-blur-md,
+.backdrop-blur-lg {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.select-none,
+[style*="user-select: none"] {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+button,
+[role="button"],
+label {
+  cursor: pointer;
+}
+
 @media print {
   body { background: #fff; }
   #cv-preview { box-shadow: none !important; border: none; }

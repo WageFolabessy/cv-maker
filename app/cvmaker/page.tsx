@@ -44,19 +44,24 @@ export default function CVMakerPage() {
   }));
 
   const [dragOver, setDragOver] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) setData(JSON.parse(raw));
     } catch {}
+    finally {
+      setLoaded(true);
+    }
   }, []);
 
   useEffect(() => {
+    if (!loaded) return;
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(data));
     } catch {}
-  }, [data]);
+  }, [data, loaded]);
 
   const addHeaderSocial = () =>
     setData((d) => ({
@@ -152,9 +157,9 @@ export default function CVMakerPage() {
               height={36}
               className="rounded"
             />
-            <a href="/" className="text-lg font-semibold tracking-tight">
+            <Link href="/" className="text-lg font-semibold tracking-tight">
               CV Maker
-            </a>
+            </Link>
           </div>
 
           <nav aria-label="CV Maker navigation" className="hidden md:block">
@@ -180,6 +185,7 @@ export default function CVMakerPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/"
+              scroll={false}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white text-sm font-medium shadow-sm hover:bg-blue-700"
             >
               See CV
@@ -219,6 +225,7 @@ export default function CVMakerPage() {
                     <input
                       id="name"
                       className="mt-1 w-full border rounded-lg px-3 py-2"
+                      autoComplete="name"
                       value={data.header.name}
                       onChange={(e) =>
                         setData((d) => ({
@@ -239,6 +246,7 @@ export default function CVMakerPage() {
                     <input
                       id="role"
                       className="mt-1 w-full border rounded-lg px-3 py-2"
+                      autoComplete="organization-title"
                       value={data.header.role}
                       onChange={(e) =>
                         setData((d) => ({
@@ -249,46 +257,47 @@ export default function CVMakerPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-sm text-gray-700"
-                      >
-                        Email
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        className="mt-1 w-full border rounded-lg px-3 py-2"
-                        value={data.header.email}
-                        onChange={(e) =>
-                          setData((d) => ({
-                            ...d,
-                            header: { ...d.header, email: e.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="phone"
-                        className="block text-sm text-gray-700"
-                      >
-                        Phone
-                      </label>
-                      <input
-                        id="phone"
-                        className="mt-1 w-full border rounded-lg px-3 py-2"
-                        value={data.header.phone}
-                        onChange={(e) =>
-                          setData((d) => ({
-                            ...d,
-                            header: { ...d.header, phone: e.target.value },
-                          }))
-                        }
-                      />
-                    </div>
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm text-gray-700"
+                    >
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      className="mt-1 w-full border rounded-lg px-3 py-2"
+                      autoComplete="email"
+                      value={data.header.email}
+                      onChange={(e) =>
+                        setData((d) => ({
+                          ...d,
+                          header: { ...d.header, email: e.target.value },
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm text-gray-700"
+                    >
+                      Phone
+                    </label>
+                    <input
+                      id="phone"
+                      className="mt-1 w-full border rounded-lg px-3 py-2"
+                      autoComplete="tel"
+                      value={data.header.phone}
+                      onChange={(e) =>
+                        setData((d) => ({
+                          ...d,
+                          header: { ...d.header, phone: e.target.value },
+                        }))
+                      }
+                    />
                   </div>
 
                   <div>
@@ -296,12 +305,13 @@ export default function CVMakerPage() {
                       htmlFor="loc"
                       className="block text-sm text-gray-700"
                     >
-                      Location (place name)
+                      Location
                     </label>
                     <input
                       id="loc"
                       className="mt-1 w-full border rounded-lg px-3 py-2"
-                      placeholder="Kota, Provinsi, Negara"
+                      placeholder="City, State/Province, Country"
+                      autoComplete="address-level2"
                       value={data.header.locationName}
                       onChange={(e) =>
                         setData((d) => ({
@@ -320,15 +330,14 @@ export default function CVMakerPage() {
                       htmlFor="maps"
                       className="block text-sm text-gray-700"
                     >
-                      Google Maps link (required)
+                      Google Maps link
                     </label>
                     <input
                       id="maps"
-                      className={`mt-1 w-full border rounded-lg px-3 py-2 ${
-                        mapsValid ? "" : "border-red-500"
-                      }`}
+                      className={`mt-1 w-full border rounded-lg px-3 py-2 ${mapsValid ? "" : "border-red-500"}`}
                       placeholder="https://www.google.com/maps/..."
                       aria-invalid={!mapsValid}
+                      autoComplete="url"
                       value={data.header.mapsUrl}
                       onChange={(e) =>
                         setData((d) => ({
@@ -384,10 +393,12 @@ export default function CVMakerPage() {
                     </label>
                     {data.header.avatarDataUrl && (
                       <figure className="mt-3 flex items-center gap-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        {/* Replace <img> with <Image> */}
+                        <Image
                           src={data.header.avatarDataUrl}
                           alt="Profile photo"
+                          width={64}
+                          height={64}
                           className="w-16 h-16 rounded-full object-cover border"
                         />
                         <figcaption>
@@ -428,6 +439,8 @@ export default function CVMakerPage() {
                           <input
                             className="sm:col-span-2 border rounded px-2 py-1"
                             placeholder="Label (e.g., GitHub)"
+                            aria-label="Header social label"
+                            autoComplete="off"
                             value={s.label}
                             onChange={(e) =>
                               setData((d) => ({
@@ -443,6 +456,8 @@ export default function CVMakerPage() {
                           <input
                             className="sm:col-span-3 border rounded px-2 py-1"
                             placeholder="https://..."
+                            aria-label="Header social URL"
+                            autoComplete="off"
                             value={s.url}
                             onChange={(e) =>
                               setData((d) => ({
@@ -487,7 +502,7 @@ export default function CVMakerPage() {
 
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm text-gray-600">
-                    Add multiple sections such as About Me, etc.
+                    Add sections such as About Me, etc.
                   </p>
                   <button
                     type="button"
@@ -509,6 +524,7 @@ export default function CVMakerPage() {
                           id={`title-${s.id}`}
                           className="w-full border rounded px-3 py-2"
                           placeholder="Section title (e.g., About Me)"
+                          autoComplete="off"
                           value={s.title}
                           onChange={(e) =>
                             setData((d) => ({
@@ -594,6 +610,7 @@ export default function CVMakerPage() {
                     id="footnote"
                     className="mt-1 w-full border rounded-lg px-3 py-2"
                     placeholder="© Year Name. All rights reserved."
+                    autoComplete="off"
                     value={data.footerNote}
                     onChange={(e) =>
                       setData((d) => ({ ...d, footerNote: e.target.value }))
@@ -621,6 +638,8 @@ export default function CVMakerPage() {
                       <input
                         className="sm:col-span-2 border rounded px-2 py-1"
                         placeholder="Label"
+                        aria-label="Footer social label"
+                        autoComplete="off"
                         value={s.label}
                         onChange={(e) =>
                           setData((d) => ({
@@ -636,6 +655,8 @@ export default function CVMakerPage() {
                       <input
                         className="sm:col-span-3 border rounded px-2 py-1"
                         placeholder="https://..."
+                        aria-label="Footer social URL"
+                        autoComplete="off"
                         value={s.url}
                         onChange={(e) =>
                           setData((d) => ({
@@ -673,9 +694,11 @@ export default function CVMakerPage() {
                 <div className="px-8 py-8 text-center">
                   <div className="flex items-center justify-center">
                     {data.header.avatarDataUrl ? (
-                      <img
+                      <Image
                         alt="Profile photo"
                         src={data.header.avatarDataUrl}
+                        width={96}
+                        height={96}
                         className="w-24 h-24 rounded-full object-cover border"
                       />
                     ) : (
@@ -713,7 +736,7 @@ export default function CVMakerPage() {
                         s.url ? (
                           <a
                             key={s.id}
-                            className="hover:underline"
+                            className="text-black hover:underline"
                             href={s.url}
                             target="_blank"
                             rel="noreferrer"
@@ -761,7 +784,7 @@ export default function CVMakerPage() {
                         s.url ? (
                           <a
                             key={s.id}
-                            className="hover:underline"
+                            className="text-black hover:underline"
                             href={s.url}
                             target="_blank"
                             rel="noreferrer"

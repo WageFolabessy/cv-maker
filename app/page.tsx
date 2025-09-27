@@ -62,14 +62,14 @@ export default function Home() {
               height={36}
               className="rounded"
             />
-            <h1 className="text-lg font-semibold tracking-tight">CV Preview</h1>
+            <h1 className="text-lg font-semibold tracking-tight">CV Maker</h1>
           </div>
 
           <nav aria-label="Main navigation" className="hidden md:block">
             <ul className="flex items-center gap-6 text-sm">
               <li>
                 <Link href="/cvmaker" className="hover:underline">
-                  Back to Editor
+                  Go to Editor
                 </Link>
               </li>
             </ul>
@@ -97,9 +97,11 @@ export default function Home() {
             <div className="px-8 py-8 text-center">
               <div className="flex items-center justify-center">
                 {data.header.avatarDataUrl ? (
-                  <img
+                  <Image
                     alt="Profile photo"
                     src={data.header.avatarDataUrl}
+                    width={96}
+                    height={96}
                     className="w-24 h-24 rounded-full object-cover border"
                   />
                 ) : (
@@ -137,7 +139,7 @@ export default function Home() {
                     s.url ? (
                       <a
                         key={s.id}
-                        className="hover:underline"
+                        className="text-black hover:underline"
                         href={s.url}
                         target="_blank"
                         rel="noreferrer"
@@ -180,7 +182,7 @@ export default function Home() {
                     s.url ? (
                       <a
                         key={s.id}
-                        className="hover:underline"
+                        className="text-black hover:underline"
                         href={s.url}
                         target="_blank"
                         rel="noreferrer"
