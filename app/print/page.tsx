@@ -30,10 +30,22 @@ export default function PrintPage() {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) setData(JSON.parse(raw));
-      setTimeout(() => window.print(), 100);
-    } catch {
-      setTimeout(() => window.print(), 200);
-    }
+      setTimeout(() => {
+        if (raw) {
+          try {
+            const d = JSON.parse(raw) as CvData;
+            const isEmpty =
+              [d.header.name, d.header.role, d.header.email, d.header.phone, d.header.locationName, d.header.mapsUrl, d.header.avatarDataUrl]
+                .every((x) => !x || String(x).trim() === "") &&
+              d.headerSocials.length === 0 &&
+              d.sections.length === 0 &&
+              (!d.footerNote || d.footerNote.trim() === "") &&
+              d.footerSocials.length === 0;
+            if (!isEmpty) window.print();
+          } catch {}
+        }
+      }, 120);
+    } catch {}
   }, []);
 
   const linkifyHtml = (html: string) => {
@@ -150,13 +162,33 @@ export default function PrintPage() {
     footerNote: "",
   };
 
+  const hasData =
+    !!data &&
+    !(
+      [data.header.name, data.header.role, data.header.email, data.header.phone, data.header.locationName, data.header.mapsUrl, data.header.avatarDataUrl]
+        .every((x) => !x || String(x).trim() === "") &&
+      data.headerSocials.length === 0 &&
+      data.sections.length === 0 &&
+      (!data.footerNote || data.footerNote.trim() === "") &&
+      data.footerSocials.length === 0
+    );
+
+  if (!hasData)
+    return (
+      <div className="min-h-screen bg-white text-black">
+        <main className="mx-auto max-w-[186mm] px-6 py-10">
+          <p>No CV data to print. Please create your CV in the editor.</p>
+        </main>
+      </div>
+    );
+
   return (
     <div className="min-h-screen bg-white text-black">
       <main className="mx-auto max-w-[186mm] px-0 py-0">
         <article id="cv-preview" className="mx-auto">
           <header className="text-center mb-6" style={{ breakInside: "avoid" }}>
             <div className="flex items-center justify-center">
-              {d.header.avatarDataUrl ? (
+              {d.header.avatarDataUrl && (
                 <Image
                   alt="Profile photo"
                   src={d.header.avatarDataUrl}
@@ -164,16 +196,14 @@ export default function PrintPage() {
                   height={80}
                   className="w-20 h-20 rounded-full object-cover border"
                 />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-gray-100 border flex items-center justify-center text-2xl text-gray-500">
-                  ?
-                </div>
               )}
             </div>
-            <h1 className="text-2xl font-bold mt-2">
-              {d.header.name || "Name"}
-            </h1>
-            <p className="text-[12.5px] text-gray-700">{d.header.role || ""}</p>
+            {d.header.name && (
+              <h1 className="text-2xl font-bold mt-2">{d.header.name}</h1>
+            )}
+            {d.header.role && (
+              <p className="text-[12.5px] text-gray-700">{d.header.role}</p>
+            )}
 
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 justify-center text-[12.5px] text-gray-700">
               {d.header.email && (

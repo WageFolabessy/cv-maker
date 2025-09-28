@@ -1,6 +1,6 @@
 # CV Maker
 
-A simple CV builder with live preview, print-ready output, and basic SEO.  
+A simple CV builder with live preview, print-ready output, and ATS optimization.  
 Live: https://cvmaker.efolabessy.app
 
 ## Features

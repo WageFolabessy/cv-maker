@@ -145,6 +145,28 @@ export default function CVMakerPage() {
     /https?:\/\/(www\.)?google\.[a-z.]+\/maps/i.test(data.header.mapsUrl) ||
     /https?:\/\/maps\.app\.goo\.gl\//i.test(data.header.mapsUrl);
 
+  const isCvEmpty = (d: CvData) => {
+    const h = d.header;
+    const isEmptyHeader =
+      [
+        h.name,
+        h.role,
+        h.email,
+        h.phone,
+        h.locationName,
+        h.mapsUrl,
+        h.avatarDataUrl,
+      ].every((x) => !x || String(x).trim() === "");
+    const isEmptyBody =
+      d.headerSocials.length === 0 &&
+      d.sections.length === 0 &&
+      (!d.footerNote || d.footerNote.trim() === "") &&
+      d.footerSocials.length === 0;
+    return isEmptyHeader && isEmptyBody;
+  };
+
+  const hasData = loaded && !isCvEmpty(data);
+
   return (
     <div className="min-h-dvh bg-slate-50">
       <header className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b">
@@ -199,7 +221,7 @@ export default function CVMakerPage() {
           {/* Editor */}
           <aside
             className="lg:w-[420px] print:hidden"
-            aria-label="Panel Editor CV"
+            aria-label="CV Editor Panel"
           >
             <section
               id="editor-header"
@@ -518,7 +540,7 @@ export default function CVMakerPage() {
                     <li key={s.id} className="border rounded-xl p-3 bg-gray-50">
                       <div className="flex items-center gap-2 mb-2">
                         <label htmlFor={`title-${s.id}`} className="sr-only">
-                          Judul section
+                          Section title
                         </label>
                         <input
                           id={`title-${s.id}`}
@@ -685,15 +707,16 @@ export default function CVMakerPage() {
 
           {/* CV Preview */}
           <section className="flex-1">
-            <article
-              aria-label="CV Preview"
-              id="cv-preview"
-              className="mx-auto w-full max-w-[794px] bg-white rounded-2xl border shadow-lg print:shadow-none"
-            >
+            {hasData && (
+              <article
+                aria-label="CV Preview"
+                id="cv-preview"
+                className="mx-auto w-full max-w-[794px] bg-white rounded-2xl border shadow-lg print:shadow-none"
+              >
               <header className="border-b">
                 <div className="px-8 py-8 text-center">
                   <div className="flex items-center justify-center">
-                    {data.header.avatarDataUrl ? (
+                    {data.header.avatarDataUrl && (
                       <Image
                         alt="Profile photo"
                         src={data.header.avatarDataUrl}
@@ -701,16 +724,16 @@ export default function CVMakerPage() {
                         height={96}
                         className="w-24 h-24 rounded-full object-cover border"
                       />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-gray-100 border flex items-center justify-center text-3xl text-gray-500">
-                        ?
-                      </div>
                     )}
                   </div>
-                  <h1 className="mt-4 text-3xl font-bold text-gray-900">
-                    {data.header.name || "Name"}
-                  </h1>
-                  <p className="text-blue-600">{data.header.role || ""}</p>
+                  {data.header.name && (
+                    <h1 className="mt-4 text-3xl font-bold text-gray-900">
+                      {data.header.name}
+                    </h1>
+                  )}
+                  {data.header.role && (
+                    <p className="text-blue-600">{data.header.role}</p>
+                  )}
 
                   <address className="not-italic mt-3 text-sm text-gray-600 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
                     {data.header.email && (
@@ -812,6 +835,7 @@ export default function CVMakerPage() {
                 </footer>
               </div>
             </article>
+            )}
           </section>
         </div>
       </main>

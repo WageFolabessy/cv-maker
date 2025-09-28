@@ -7,7 +7,7 @@ export const size = {
 export const contentType = "image/png";
 
 export default function OGImage() {
-  const logo = "https://cvmaker.efolabessy.app/images/gasnative.webp";
+  const logo = "https://cvmaker.efolabessy.app/images/gasnative.png";
   const title = "CV Maker";
   const subtitle = "Create your CV with ATS optimization";
 
@@ -40,7 +40,6 @@ export default function OGImage() {
             background: "#f9fafb",
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logo} width={96} height={96} alt="Logo" />
         </div>
         <div
